@@ -1,0 +1,306 @@
+---
+title: "Why Data Cleaning Matters: Methods and Tools in R"
+author: Isabel Correia von der Beeck (400431670)
+date: '2025-11-26'
+format: revealjs
+html:
+  embed-resources: true
+header: "Why Data Cleaning Matters: Methods and Tools in R"
+transition: slide
+bibliography: mylit.bib
+csl: _extensions/apaquarto/apa.csl
+slide-number: true
+---
+
+```{r}
+library(tidyverse)
+library(gt)
+library(readxl)
+theme_set(theme_minimal())
+Mappe1 <- read_excel("Mappe1.xlsx")
+```
+
+## Agenda
+
+-   What is it good for?
+
+-   Overview of methods & tools
+
+-   Exercise
+
+
+
+## What is Data Cleaning Good for?
+
+**Key benefits:** 
+
+-   **Accuracy** of results by removing errors, duplicates or other inconsistencies
+
+-   **Consistency** across datasets makes it possible to merge and compare datasets without conflict
+
+-   Handling **missing values** to prevent biased outcomes
+
+-   Better modeling and **predictions** when using statistival models
+
+*see* @kabacoff2024modern, @Lee2025guide 
+
+
+## Overview 
+
+| Package | Function  | Use                                         |
+|---------|-----------|---------------------------------------------|
+| dplyr   | select    | select variables/columns                    |
+| dplyr   | filter    | select observations/rows                    |
+| dplyr   | mutate    | transform or recode variables               |
+| dplyr   | summarize | summarize data                              |
+| dplyr   | group_by  | identify subgroups for further processing   |
+
+
+*see* @nordmann2022data, @kabacoff2024modern
+
+## dataset starwars
+
+```{r| eval: false}
+starwars %>%
+  head(10)
+
+```
+
+```{r}
+starwars %>%
+  head(10)
+```
+
+
+## select( )
+-   keeps only the columns you need, removes irrelevant ones
+```{r| eval: false}
+starwars %>%
+select(name,species,contains("color"))  %>%
+head(10)
+```
+
+```{r}
+starwars %>%
+select(name,species,contains("color"))  %>%
+head(10)
+```
+
+
+## filter( )
+-   keeps only rows that meet certain conditions
+```{r| eval: false}
+starwars %>%
+  select(name, height, species, eye_color) %>%
+  filter(species == "Human" &
+           height < 200 &
+           eye_color %in% c("blue", "brown")) %>%
+  head(9)
+```
+```{r}
+starwars %>%
+  select(name, height, species, eye_color) %>%
+  filter(species == "Human" &
+           height < 200 &
+           eye_color %in% c("blue", "brown")) %>%
+  head(9)
+```
+
+
+## mutate( )
+-   creates new variables or modifies existing ones
+```{r| eval: false}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height = height/100) %>%
+  head(10)
+```
+
+```{r}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height = height/100) %>%
+  head(10)
+```
+
+
+## mutate( )
+-   creates new variables or modifies existing ones
+```{r| eval: false}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height_2 = height/100) %>%
+  head(10)
+```
+
+```{r}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height_2 = height/100) %>%
+  head(10)
+```
+
+
+## mutate( ) and recode ( )
+-   replace or rename categories for consistency
+```{r| eval: false}
+starwars %>%
+  select(name, contains("color"), species) %>%
+  mutate(species = recode(species,
+                          "Droid" = "Robot")) %>%
+  head(10)
+
+```
+
+```{r}
+starwars %>%
+  select(name, contains("color"), species) %>%
+  mutate(species = recode(species,
+                          "Droid" = "Robot")) %>%
+  head(10)
+```
+
+
+## missing data
+
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  head(10)
+```
+
+```{r}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  head(10)
+```
+## missing data - na.omit( )
+-   drops all rows with missing values
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  na.omit()
+head(10)
+```
+
+```{r}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  na.omit()
+head(10)
+```
+
+
+## missing data - filter( )
+-   shows all rows with missing value
+
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.))
+```
+
+```{r}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.))
+```
+## missing data - drop.na( )
+-   remove rows only if specific columns have missing values
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  drop_na(height)
+head(10)
+```
+```{r}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  drop_na(height)
+head(10)
+```
+## missing data - replace_na( )
+-   fills missing values with defaults
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  mutate(hair_color = replace_na(hair_color, "none"))
+```
+
+```{r}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  mutate(hair_color = replace_na(hair_color, "none"))
+```
+
+## group_by ( ) and summarise ( )
+-   organise data into groups (grouped operations) and collapse groups into summary statistics (e.g., mean, count, sum)
+```{r| eval: false}
+starwars %>%
+  group_by(species) %>%
+  summarise(avg_mass = mean(mass, na.rm = TRUE))
+
+```
+```{r}
+starwars %>%
+  group_by(species) %>%
+  summarise(avg_mass = mean(mass, na.rm = TRUE))
+head(10)
+```
+
+
+## Learning my Doing
+[***Task:***]{.underline}***What is the average female and male height (in m) and mass in the "starwars" data set?***
+```{r#| eval: false}
+# install.packages("tidyverse")
+library(tidyverse)
+view(starwars)
+```
+
+***Try to use the functions:***
+-   select()
+-   filter()
+-   mutate()
+-   drop_na()
+-   group_by()
+-   summarise()
+
+## Possible Solution
+
+```{r#| eval: false}
+starwars %>%
+  select(sex, height, mass) %>%
+  filter(sex == "male" | sex == "female") %>%
+  mutate(height = height/100) %>%
+  drop_na() %>%
+  group_by(sex) %>%
+  summarise('Average height' = (mean(height)),
+            'Average mass' = mean(mass))
+```
+
+```{r}
+starwars %>%
+  select(sex, height, mass) %>%
+  filter(sex == "male" | sex == "female") %>%
+  mutate(height = height/100) %>%
+  drop_na() %>%
+  group_by(sex) %>%
+  summarise('Average height' = (mean(height)),
+            'Average mass' = mean(mass))
+```
+
+
+::: {.center .middle}
+# Thank you for listening!
+:::
+
+
+
+## References
+
+::: {#refs}
+:::

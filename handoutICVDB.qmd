@@ -1,0 +1,281 @@
+---
+title: "Why Data Cleaning Matters: Methods and Tools in R"
+author:
+    - name: "Isabel Correia von der Beeck (400431670)"
+      email: correia_von_der_beeck.isabel@stud.hs-fresenius.de
+      affiliations: Fresenius University of Applied Science
+      address: Im Mediapark 4c
+      city: Cologne
+      region: NRW
+      postal-code: 50670
+      id: temple
+      corresponding: true
+abstract: "This handout introduces the concept and practice of data cleaning as a fundamental step in preparing datasets for reliable analysis. The process of data cleansing is integral to the maintenance of data accuracy, consistency, and integrity. It addresses common issues such as duplicates, missing values, and inconsistent formats. The document emphasises the key benefits of data cleaning, including improved analytical validity, enhanced comparability across datasets, and stronger predictive modelling outcomes. A practical business use case is provided to illustrate how survey data can be cleaned to produce trustworthy insights for marketing decisions.In addition, the handout demonstrates how the tidyverse collection of R packages, focusing on dyplr, offers powerful functions for structuring and standardizing data. By combining theoretical explanations with hands‑on coding examples, the material equips students with both conceptual understanding and practical skills for transforming raw information into clean, analysis‑ready datasets. 
+
+
+*Keywords:* data cleaning, R, tidyverse, dplyr"
+floatsintext: true
+wordcount-banner: true
+filters:
+  - wordcount
+format:
+  apaquarto-pdf:
+    documentmode: stu
+    course: Data Analysis for Decision-Making  (WS 2025/26)
+    professor: Prof. Dr. Stephan Huber
+    duedate: '2025-11-26'
+    keep-tex: false
+    fig-align: "left"
+    include-in-header:
+      text: |
+        \linespread{1.5}
+        <!-- This equals 1.5 linespacing in Word -->
+  apaquarto-html:
+    toc: true
+    embed-resources: true
+a4paper: true
+bibliography: mylit.bib
+reference-location: document
+number-sections: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+Word count: {{wordcount}}
+
+# Data Cleaning
+
+## **Key Benefits of Data Cleaning:**  
+
+-   **Accuracy** of results by removing errors, duplicates or other inconsistencies
+
+-   **Consistency** across datasets makes it possible to merge and compare datasets without conflict
+
+-   Handling **missing values** to prevent biased outcomes
+
+-   Better modeling and **predictions** when using statistival models
+
+*see* @kabacoff2024modern, @Lee2025guide
+
+
+
+## **Business Use Case**
+
+**Scenario:** A company runs an online survey to measure customer satisfaction after a product launch.
+
+**Problem:** Responses include *missing demoraphic data*, *inconsistent gender categories* ("M", "Male", "m"), and some people *submit multiple times*
+
+
+**Data Cleaning Steps:**
+
+-   Remove duplicate responses to avoid bias
+-   Standardize categories (e.g., all "M" -> "Male")
+
+-   Handle missing values by either removing incomplete responses or filling defaults
+
+**Business Impact:**
+
+-   Survey results accurately reflect customer opinions
+-   Marketing teams can segment customers by demographics with confidence
+-   Decisions about product improvements or new campaigns are based on reliable insights
+
+# Data Cleaning in R
+## Overview of Functions
+
+*tbl. 1.: Selection of Functions in Tidyverse*
+
+| Package | Function  | Use                                         |
+|---------|-----------|---------------------------------------------|
+| dplyr   | select()    | select variables/columns                    |
+| dplyr   | filter()    | select observations/rows                    |
+| dplyr   | mutate()    | transform or recode variables               |
+| dplyr   | summarize() | summarize data                              |
+| dplyr   | group_by()  | identify subgroups for further processing   |
+| dplyr   | distinct()  | remove duplicate rows to ensure uniqueness  |
+| dplyr   | arrange()  | order rows by one or more variables (e.g., sort by age)   |
+| tidyr   | drop_na()   | remove rows with missing values in selected columns               |
+| tidyr   | replace_na() | replace missing values with default (e.g., "none")                             |
+| tidyr   | pivot_longer()  | reshape data from long to wide format  |
+| tidyr   | pivot_wider()   | reshape data from long to wide format  |
+| tibble   | tribble()       | construct small tibbles by hand        |   
+
+As shown in *Table 1*, different packages provide specialized tools to handle messy datasets in R. The **tidyverse** is a collection of such packages, including *dplyr*, *tidyr*, *stringr*, *forcats*, and *janitor*. As mentioned in @kabacoff2024modern and @wickham2023r, each package offers functions to select, filter, reshape, and standardize data. Combining them makes it easier to transform raw information into clean and consistent datasets.
+
+## Data Cleaning Using dplyr
+To reproduce simply the following coding exercise using some of the functions presented in *Table 1*, one may utilize the **starwars dataset**, which is included in the tidyverse collection. Access to this dataset requires loading the tidyverse package before starting this exercise, thereby ensuring that the data and relevant functions are available for practice.
+
+### select( )
+-   keeps only the columns you need, removes irrelevant ones
+```{r| eval: false}
+starwars %>%
+select(name,species,contains("color"))  %>%
+```
+
+### filter( )
+-   keeps only rows that meet certain conditions
+```{r| eval: false}
+starwars %>%
+  select(name, height, species, eye_color) %>%
+  filter(species == "Human" &
+           height < 200 &
+           eye_color %in% c("blue", "brown")) %>%
+```
+
+### mutate( )
+-   creates new variables or modifies existing ones
+```{r| eval: false}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height = height/100) %>%
+```
+### mutate( )
+-   creates new variables or modifies existing ones
+```{r| eval: false}
+starwars %>%
+  select(name, height, mass, species) %>%
+  mutate(height_2 = height/100) %>%
+```
+### mutate( ) and recode ( )
+-   replace or rename categories for consistency
+```{r| eval: false}
+starwars %>%
+  select(name, contains("color"), species) %>%
+  mutate(species = recode(species,
+                          "Droid" = "Robot")) %>%
+```
+### missing data - na.omit( )
+-   drops all rows with missing values
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  na.omit()
+```
+### missing data - filter( )
+-   shows all rows with missing value
+
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.))
+```
+### missing data - drop.na( )
+-   remove rows only if specific columns have missing values
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  drop_na(height)
+```
+### missing data - replace_na( )
+-   fills missing values with defaults
+```{r| eval: false}
+starwars %>%
+  select(name, gender, hair_color, height) %>%
+  filter(!complete.cases(.)) %>%
+  mutate(hair_color = replace_na(hair_color, "none"))
+```
+### group_by ( ) and summarise ( )
+-   organise data into groups (grouped operations) and collapse groups into summary statistics (e.g., mean, count, sum)
+```{r| eval: false}
+starwars %>%
+  group_by(species) %>%
+  summarise(avg_mass = mean(mass, na.rm = TRUE))
+```
+# Recommendations
+
+For further insights into the topic of data cleaning and its applications, students may consult @kabacoff2024modern, @wickham2023r and @nordmann2022data. These sources provide extended discussions and examples that complement the material presented in this handout. Individuals who favour teaching videos and experiential learning activities may find the Youtube channel "R Programming 101"'s @Video2025guide  tutorials and hands-on exercises particularly beneficial. 
+
+# References
+
+::: {#refs}
+:::
+
+# Affidavit
+
+I hereby affirm that this submitted paper was authored unaided and
+solely by me. Additionally, no other sources than those in the reference
+list were used. Parts of this paper, including tables and figures, that
+have been taken either verbatim or analogously from other works have in
+each case been properly cited with regard to their origin and
+authorship. This paper either in parts or in its entirety, be it in the
+same or similar form, has not been submitted to any other examination
+board and has not been published. I acknowledge that the university may
+use plagiarism detection software to check my thesis. I agree to
+cooperate with any investigation of suspected plagiarism and to provide
+any additional information or evidence requested by the university.
+
+### Checklist: {.unnumbered}
+
+-   [x] The handout contains 3-5 pages of text.
+
+-   [x] The submission contains the Quarto file of the handout.
+
+-   [x] The submission contains the Quarto file of the presentation.
+
+-   [x] The submission contains the HTML file of the handout.
+
+-   [x] The submission contains the HTML file of the presentation.
+
+-   [x] The submission contains the PDF file of the handout.
+
+-   [x] The submission contains the PDF file of the presentation.
+
+-   [x] The title page of the presentation and the handout contain
+    personal details (name,
+
+email, matriculation number).
+
+-   [x] The filled out Affidavit.
+
+-   [x] The handout contains a bibliography, created using BibTeX with
+    an APA citation style.
+
+-   [x] Either the handout or the presentation contains R code that
+    proofs the expertise in coding.
+
+-   [x] The link to the presentation and the handout published on
+    GitHub.
+
+**\[Correia von der Beeck, Isabel\] \[2025-11-26\] \[Cologne\]**
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
